@@ -3,6 +3,8 @@ package com.guruonline;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
+import com.swmansion.reanimated.ReanimatedPackage;
 import com.zmxv.RNSound.RNSoundPackage;
 import com.avishayil.rnrestart.ReactNativeRestartPackage;
 import com.github.yamill.orientation.OrientationPackage;
@@ -34,6 +36,8 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RNGestureHandlerPackage(),
+            new ReanimatedPackage(),
             new RNSoundPackage(),
             new ReactNativeRestartPackage(),
             new OrientationPackage(),
