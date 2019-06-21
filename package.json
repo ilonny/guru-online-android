@@ -7,8 +7,13 @@
     "test": "jest"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "base-64": "^0.1.0",
+    "epubjs-rn": "0.0.127",
+    "es6-object-assign": "^1.1.0",
     "react": "16.8.3",
-    "react-native": "0.59.9"
+    "react-native": "0.59.9",
+    "react-native-background-downloader": "^2.0.1"
   },
   "devDependencies": {
     "@babel/core": "7.4.5",
