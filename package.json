@@ -13,7 +13,8 @@
     "es6-object-assign": "^1.1.0",
     "react": "16.8.3",
     "react-native": "0.59.9",
-    "react-native-background-downloader": "^2.0.1"
+    "react-native-background-downloader": "^2.0.1",
+    "react-native-fetch-blob": "^0.10.8"
   },
   "devDependencies": {
     "@babel/core": "7.4.5",
