@@ -3,6 +3,7 @@ package com.guruonline;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.github.yamill.orientation.OrientationPackage;
 import com.tanguyantoine.react.MusicControl;
 import com.rnfs.RNFSPackage;
 import io.invertase.firebase.RNFirebasePackage;
@@ -31,6 +32,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new OrientationPackage(),
             new MusicControl(),
             new RNFSPackage(),
             new RNFirebasePackage(),
