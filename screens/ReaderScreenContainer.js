@@ -227,6 +227,7 @@ class ReaderScreenContainer extends Component {
     }
     render() {
         // console.log('render', this.state)
+        console.log('reader redux render');
         let comp;
         // let pagination_arr = [];
         // let books = this.state.books;
@@ -286,8 +287,8 @@ class ReaderScreenContainer extends Component {
                             this.state.downloaded_covers.forEach(cover => {
                                 if (item.id == cover.id) {
                                     cover_src = cover.file_path;
-                                    console.log('render item 1')
-                                    console.log(cover_src);
+                                    // console.log('render item 1')
+                                    // console.log(cover_src);
                                     view = (
                                         <View style={{ marginRight: 10 }}>
                                             <Image
@@ -311,9 +312,9 @@ class ReaderScreenContainer extends Component {
                             }
                             if ((!this.state.online) && (!cover_src)) {
                                 view = null;
-                                console.log('render item 2')
-                                console.log(this.state.online)
-                                console.log(cover_src)
+                                // console.log('render item 2')
+                                // console.log(this.state.online)
+                                // console.log(cover_src)
                             }
                             return (
                                 <TouchableOpacity onPress={() => this.props.navigation.navigate('Reader', { book_id: item.id, book_name: item.name, book_src: item.file_src })}>

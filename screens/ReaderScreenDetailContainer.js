@@ -21,7 +21,7 @@ import Dialog from "react-native-dialog";
 import TextTicker from "react-native-text-ticker";
 import { connect } from "react-redux";
 
-class EpubReaderContainer extends Component {
+class ReaderScreenDetail extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -80,6 +80,7 @@ class EpubReaderContainer extends Component {
     }
 
     static navigationOptions = ({ navigation }) => {
+        console.log('NAVIGATION OPTIONS FIRED')
         const toggleNavigation = navigation.getParam('toggleNavigation');
         const toggleSettings = navigation.getParam('toggleSettings');
         const bookName = navigation.getParam('book_name');
@@ -107,7 +108,7 @@ class EpubReaderContainer extends Component {
                 // <TouchableOpacity onPress={navigation.getParam('consoleState')}>
                 <View style={{ alignItems: 'center', flex: 1, flexDirection: 'row' }}>
                     <TouchableOpacity onPress={() => pageHaveBookmark ? deleteBookmark() : showBookmarkPopup()}>
-                        <Ionicons name={pageHaveBookmark ? "ios-bookmark" : "ios-bookmark-outline"} size={30} color={theme == 'light' ? 'tomato' : '#c1ae97'} style={{ marginTop: 5, marginRight: 15, marginLeft: 10 }} />
+                        <Ionicons name="ios-bookmark" size={30} color={theme == 'light' ? 'tomato' : '#c1ae97'} style={{ marginTop: 5, marginRight: 15, marginLeft: 10 }} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => toggleSettings()}>
                         <Ionicons name={"ios-cog"} size={30} color={theme == 'light' ? 'tomato' : '#c1ae97'} style={{ marginTop: 5, marginRight: 15 }} />
@@ -473,6 +474,8 @@ class EpubReaderContainer extends Component {
     }
     render() {
         console.log("render state", this.state)
+        console.log('READER NORM RENDER');
+        console.log("render props", this.props)
         return (
             <View style={styles.container}>
                 <Epub style={styles.reader}
@@ -650,7 +653,7 @@ class EpubReaderContainer extends Component {
                                                 </View>
                                                 <TouchableOpacity onPress={() => this.deleteBookmark(item.location)}>
                                                     <View style={{ flex: 0, alignItems: 'center', marginTop: -10 }}>
-                                                        <Ionicons name={"ios-trash-outline"} size={25} color="tomato" style={{ marginTop: 5 }} />
+                                                        <Ionicons name={"ios-trash"} size={25} color="tomato" style={{ marginTop: 5 }} />
                                                         <Text style={{fontSize: 10, marginTop: -6,}}>{this.props.main.lang == 'eng' || this.props.main.lang == 'en'
                                                         ? 'Delte'
                                                         : this.props.main.lang == 'es'
@@ -853,8 +856,58 @@ const mapDispatchToProps = dispatch => {
         // setLangInside: lang => dispatch(setLangInside(lang))
     };
 };
-
-export default connect(
+const connectedElem = connect(
     mapStateToProps,
     mapDispatchToProps
-)(EpubReaderContainer); 
+)(ReaderScreenDetail); 
+connectedElem.navigationOptions = ({ navigation }) => {
+    console.log('NAVIGATION OPTIONS FIRED')
+    const toggleNavigation = navigation.getParam('toggleNavigation');
+    const toggleSettings = navigation.getParam('toggleSettings');
+    const bookName = navigation.getParam('book_name');
+    const theme = navigation.getParam('theme');
+    const pageHaveBookmark = navigation.getParam('pageHaveBookmark');
+    const showBookmarkPopup = navigation.getParam('showBookmarkPopup');
+    const deleteBookmark = navigation.getParam('deleteBookmark');
+    return {
+        headerTitle: (
+            <View style={{maxWidth: 200}}>
+                <TextTicker
+                    style={{ fontSize: 14 }}
+                    duration={bookName.length*238}
+                    loop
+                    bounce
+                    repeatSpacer={50}
+                    marqueeDelay={1000}
+                    easing={Easing.linear}
+                    >
+                    {bookName}
+                </TextTicker>
+            </View>
+        ),
+        headerRight: (
+            // <TouchableOpacity onPress={navigation.getParam('consoleState')}>
+            <View style={{ alignItems: 'center', flex: 1, flexDirection: 'row' }}>
+                <TouchableOpacity onPress={() => pageHaveBookmark ? deleteBookmark() : showBookmarkPopup()}>
+                    <Ionicons name="ios-bookmark" size={30} color={theme == 'light' ? 'tomato' : '#c1ae97'} style={{ marginTop: 5, marginRight: 15, marginLeft: 10 }} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => toggleSettings()}>
+                    <Ionicons name={"ios-cog"} size={30} color={theme == 'light' ? 'tomato' : '#c1ae97'} style={{ marginTop: 5, marginRight: 15 }} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => toggleNavigation()}>
+                    <Ionicons name={"ios-list"} size={35} color={theme == 'light' ? 'tomato' : '#c1ae97'} style={{ marginTop: 5 }} />
+                </TouchableOpacity>
+            </View>
+        ),
+        // title: 'test',
+        headerTitleStyle: {
+            color: theme == 'light' ? '#000' : '#bebebe',
+            width: 180
+        },
+        headerStyle: {
+            paddingRight: 10,
+            backgroundColor: theme == 'light' ? '#fff' : '#171717',
+        },
+    }
+}
+export default connectedElem;

@@ -131,6 +131,7 @@ class ScsmathScreen extends Component {
     }
     render() {
         // console.log('id = ', this.props.navigation.getParam("id"));
+        console.log('scs props', this.props)
         return (
             <SafeAreaView
                 style={{

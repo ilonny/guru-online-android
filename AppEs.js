@@ -17,7 +17,7 @@ import SettingsScreen from "./screens/SettingsScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import DetailsScreen from "./screens/DetailsScreen";
 import ReaderScreen from "./screens/ReaderScreen";
-import ReaderScreenDetail from "./screens/ReaderScreenDetail";
+import ReaderScreenDetail from "./screens/ReaderScreenDetailContainer";
 import AudioScreen from "./screens/AudioScreen";
 import AudioDetail from "./screens/AudioDetail";
 import SiteScreen from "./screens/SiteScreen";
@@ -66,7 +66,7 @@ const ReaderStack = createStackNavigator({
             title: "Libros"
         }
     },
-    Reader: ReaderScreenDetail
+    Reader: (props) => <ReaderScreenDetail navigation={props.navigation}/>,
 });
 const AudioStack = createStackNavigator({
     Аудиокниги: {
@@ -113,17 +113,17 @@ let TopLevelNavigator = createBottomTabNavigator(
                 const { routeName } = navigation.state;
                 let iconName;
                 if (routeName === "Citas") {
-                    iconName = `ios-list${focused ? "" : "-outline"}`;
+                    iconName = `ios-list`;
                 } else if (routeName === "Ajustes") {
-                    iconName = `ios-options${focused ? "" : "-outline"}`;
+                    iconName = `ios-options`;
                 } else if (routeName === "Избранное") {
-                    iconName = `ios-star${focused ? "" : "-outline"}`;
+                    iconName = `ios-star`;
                 } else if (routeName === "Libros") {
-                    iconName = `ios-book${focused ? "" : "-outline"}`;
+                    iconName = `ios-book`;
                 } else if (routeName === "Audiolibros") {
-                    iconName = `ios-headset${focused ? "" : "-outline"}`;
+                    iconName = `ios-headset`;
                 } else if (routeName === "Harekrishna") {
-                    iconName = `ios-globe${focused ? "" : "-outline"}`;
+                    iconName = `ios-globe`;
                 }
                 // You can return any component that you like here! We usually use an
                 // icon component from react-native-vector-icons

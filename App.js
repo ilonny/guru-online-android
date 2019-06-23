@@ -58,7 +58,7 @@ const ListStack = createStackNavigator({
 });
 const ReaderStack = createStackNavigator({
     Книги: ReaderScreen,
-    Reader: ReaderScreenDetail,
+    // Reader: (props) => <ReaderScreenDetail navigation={props.navigation}/>,
     Книги: {
         screen: ReaderScreen,
         navigationOptions: {
