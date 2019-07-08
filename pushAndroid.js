@@ -37,9 +37,9 @@ AsyncStorage.getItem('lang', (err, lang) => {
                     
                 }
               };
-              request.open('GET', API_URL + `/set-token?token=${JSON.stringify(fcmToken)}&settings=${device_settings}&news_settings=${device_settings_site}&version=3&lang=${lang}`);
+              request.open('GET', API_URL + `/set-token?token=${JSON.stringify(fcmToken)}&settings=${device_settings}&news_settings=${device_settings_site}&version=3&lang=${lang}&ecadash=old`);
               request.send();
-              console.log(API_URL + `/set-token?token=${JSON.stringify(fcmToken)}&settings=${device_settings}&news_settings=${device_settings_site}&version=3&lang=${lang}`);
+              console.log(API_URL + `/set-token?token=${JSON.stringify(fcmToken)}&settings=${device_settings}&news_settings=${device_settings_site}&version=3&lang=${lang}&ecadash=old`);
           });
         });
       } else {
