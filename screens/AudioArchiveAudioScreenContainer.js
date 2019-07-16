@@ -7,6 +7,7 @@ import {
   Animated,
   Modal,
   StatusBar,
+  AsyncStorage,
   TouchableOpacity,
   FlatList,
   Alert,
@@ -14,9 +15,10 @@ import {
   Slider,
   ActivityIndicator,
   Easing,
-  Dimensions
+  Dimensions,
+  WebView
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import { SITE_URL } from "../constants/api";
 import { SafeAreaView } from "react-navigation";
 import { API_URL } from '../constants/api';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -38,6 +40,8 @@ import {
 // let dirs = RNFetchBlob.fs.dirs
 var Sound = require('react-native-sound');
 import MusicControl from 'react-native-music-control';
+// import { WebView } from 'react-native-webview';
+// import WKWebView from "react-native-wkwebview-reborn";
 Sound.setCategory('Playback');
 MusicControl.handleAudioInterruptions(true);
 
@@ -46,6 +50,8 @@ class AudioArchiveAudioScreenContainer extends Component {
       super(props);
       this.state = {
         books: [],
+        page: 1,
+        loading: false,
         date: Date.now(),
         refreshnig: false,
         book_id: this.props.navigation.getParam("book_id"),
@@ -60,6 +66,7 @@ class AudioArchiveAudioScreenContainer extends Component {
         currentTime: 0,
         prerender: false,
         online: this.props.navigation.getParam("online"),
+        webViewCode: '',
       }
     }
     static navigationOptions = ({navigation}) => {
@@ -81,7 +88,40 @@ class AudioArchiveAudioScreenContainer extends Component {
                 }
     }
     whoosh = {};
-    _keyExtractor = (item) => item.id
+    addPage() {
+        this.setState({
+            page: this.state.page + 1,
+            loading: true
+        }, () => {
+            let request = new XMLHttpRequest();
+            request.onreadystatechange = e => {
+                if (request.status === 200) {
+                    try {
+                        console.log('set state ???')
+                        this.setState({
+                            books: JSON.parse(request.responseText).concat({id: Date.now().toString(), type: 'end'}),
+                            loading: false,
+                        })
+                    } catch (e) {console.log('crashed', e)}
+                }
+            }
+            request.open(
+                "GET",
+                SITE_URL + `/get-audio-archive-pagination.php?section_id=${this.state.books[0].section_id}&page=${this.state.page}`
+            );
+            request.send();
+        });
+    }
+    // shouldComponentUpdate(nextProps, nextState){
+    //     if (nextState.books.length != this.state.books.length){
+    //         return true;
+    //     }
+    //     if (nextState.books.length != this.state.books.length){
+    //         return true;
+    //     }
+    //     return false;
+    // }
+    _keyExtractor = (item) => item.id.toString();
     downloadBook(file_id, need_play = false){
         console.log('start downloading', file_id)
         this.props.setNeedToDownload([].concat(file_id));
@@ -257,7 +297,7 @@ class AudioArchiveAudioScreenContainer extends Component {
     }
     componentDidMount(){
         this.setState({
-            books: this.props.navigation.getParam('audio'),
+            books: this.props.navigation.getParam('audio').concat({id: Date.now().toString(), type: 'end'}),
             book_id: this.props.navigation.getParam('author_id'),
             online: this.props.navigation.getParam('online'),
         })
@@ -411,7 +451,7 @@ class AudioArchiveAudioScreenContainer extends Component {
         clearInterval(this.downloaderChecker);
         // this.cancelTask();
     }
-    playAudio(id, path = null, toc_id = null){
+    playAudio(id, path = null, toc_id = null, code = null){
         console.log('play audio fired', id, path)
         if (this.whoosh){
             try {
@@ -424,10 +464,30 @@ class AudioArchiveAudioScreenContainer extends Component {
         console.log('play audio fired', id, path);
         let playingAudio = {};
         if (path){
+            console.log('webview if online', code)
+            this.state.books.forEach(el => {
+                if (el.id == id){
+                    playingAudio.name = el.name;
+                    playingAudio.description = el.description;
+                    playingAudio.id = el.id;
+                    playingAudio.toc_id = toc_id;
+                    playingAudio.code = el.code;
+                }
+            })
+            this.setState({
+                isOpenModal: true,
+                playing: true,
+                playingAudio: playingAudio,
+                webViewCode: playingAudio.code,
+            });
             //проиграть онлайн
+            return false;
             playingAudio.path = path;
         } else {
             //брать с оффлайна
+            this.setState({
+                webViewCode: '',
+            })
             this.state.downloaded_books.forEach(el => {
                 if (el.id == id){
                     playingAudio.path = el.file_path;
@@ -742,7 +802,7 @@ class AudioArchiveAudioScreenContainer extends Component {
                                 </View>
                             </TouchableOpacity>
                         )}
-                        <TouchableOpacity onPress={() => this.state.online ? this.playAudio(item.id, item.file_path, toc_id) : Alert.alert('Необходимо подключение к интернету')}>
+                        <TouchableOpacity onPress={() => this.state.online ? this.playAudio(item.id, item.file_path, toc_id, item.code) : Alert.alert('Необходимо подключение к интернету')}>
                             <View style={{flex: 1, justifyContent: "center", flexDirection: 'column', alignItems: 'center', marginLeft: 10}}>
                                 <View>
                                     <Ionicons name="ios-play" size={23} color="tomato" style={{margin: 'auto'}} />
@@ -754,27 +814,54 @@ class AudioArchiveAudioScreenContainer extends Component {
                 )
             }
         }
-        return (
-            <View style={listStyles.quoteItem}>
-                <View style={{flex: 1}}>
-                    <Text style={[listStyles.quoteTitle, {textAlign: 'center'}]}>{item.name}</Text>
-                    {!!item.description && <Text style={{marginTop: 10, textAlign: 'center'}}>{item.description}</Text>}
-                </View>
-                <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 5}}>
-                    {audioAction}
-                    {item.toc_id && (
-                        <TouchableOpacity onPress={() => this.redirectToReader(item.reader_book_id, item.reader_book_name, item.reader_book_src, item.toc_href)}>
-                            <View style={{flex: 0, justifyContent: "center", flexDirection: 'column', alignItems: 'center', marginLeft: 10}}>
-                                 <View>
-                                    <Ionicons name="ios-book" size={23} color="tomato" style={{margin: 'auto'}} />
+        if (item.type != "end") {
+            return (
+                <View style={listStyles.quoteItem}>
+                    <View style={{flex: 1}}>
+                        <Text style={[listStyles.quoteTitle, {textAlign: 'center'}]}>{item.name}</Text>
+                        {!!item.description && <Text style={{marginTop: 10, textAlign: 'center'}}>{item.description}</Text>}
+                    </View>
+                    <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 5}}>
+                        {audioAction}
+                        {item.toc_id && (
+                            <TouchableOpacity onPress={() => this.redirectToReader(item.reader_book_id, item.reader_book_name, item.reader_book_src, item.toc_href)}>
+                                <View style={{flex: 0, justifyContent: "center", flexDirection: 'column', alignItems: 'center', marginLeft: 10}}>
+                                    <View>
+                                        <Ionicons name="ios-book" size={23} color="tomato" style={{margin: 'auto'}} />
+                                    </View>
+                                    <Text>{this.props.main.lang == 'ru' ? 'Читать' : this.props.main.lang == 'es' ? 'Leer' : 'To read'}</Text>
                                 </View>
-                                <Text>{this.props.main.lang == 'ru' ? 'Читать' : this.props.main.lang == 'es' ? 'Leer' : 'To read'}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    )}
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
-            </View>
-        )
+            )
+        } else {
+            if (!this.state.loading) {
+                return (
+                    <TouchableOpacity
+                        style={[listStyles.quoteItem, {}]}
+                        onPress={() => this.addPage()}
+                    >
+                        <Text
+                            style={{
+                                color: "#c5c5c5",
+                                fontStyle: "italic",
+                                textAlign: "center"
+                            }}
+                            >
+                        Загрузить еще
+                    </Text>
+                </TouchableOpacity>
+                )
+            } else {
+                return (
+                    <View style={[listStyles.quoteItem, {}]}>
+                        <ActivityIndicator/>
+                    </View>
+                )
+            }
+        }
     }
     render(){
         console.log('audio details render state', this.state);
@@ -785,6 +872,7 @@ class AudioArchiveAudioScreenContainer extends Component {
                 <FlatList
                     style={{paddingLeft: 10, paddingRight: 10, paddingBottom: 5, paddingTop: 5}}
                     data={this.state.books}
+                    extraData={this.state}
                     renderItem={this._renderItem}
                     keyExtractor={this._keyExtractor}
                     // onRefresh={() => this.getBooks()}
@@ -879,54 +967,70 @@ class AudioArchiveAudioScreenContainer extends Component {
                             </View>
                             <Text style={{textAlign: 'center'}}>{this.state.playingAudio.name}</Text>
                             <Text style={{textAlign: 'center'}}>{this.state.playingAudio.description}</Text>
-                                {this.state.prerender ? (
-                                    <View style={{flex: 1, flexDirection: 'column', marginTop: -15, marginBottom: 5, justifyContent: 'center', alignItems: 'center'}}>
-                                        <ActivityIndicator size="large" color="tomato" />
-                                        <Text>{this.props.main.lang == 'ru' ? 'Загрузка...' : this.props.main.lang == 'es' ? 'Descargando' : 'Downloading...'}</Text>
+                            {this.state.webViewCode == '' ? (
+                                <View>
+                                    {this.state.prerender ? (
+                                        <View style={{flex: 1, flexDirection: 'column', marginTop: -15, marginBottom: 5, justifyContent: 'center', alignItems: 'center'}}>
+                                            <ActivityIndicator size="large" color="tomato" />
+                                            <Text>{this.props.main.lang == 'ru' ? 'Загрузка...' : this.props.main.lang == 'es' ? 'Descargando' : 'Downloading...'}</Text>
+                                        </View>
+                                    ) : (
+                                        <View>
+                                            <Slider
+                                            style={{
+                                                marginTop: -10,
+                                                marginBottom: 5,
+                                            }}
+                                            minimumValue={0}
+                                            maximumValue={this.state.duration}
+                                            onValueChange={val => this.changePlyingPos(val)}
+                                            value={this.state.currentTime}
+                                            />
+                                            <View style={{flex: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                                                <View>
+                                                    <Text>{this.toMMSS(this.state.currentTime)}</Text>
+                                                </View>
+                                                <View>
+                                                    <Text>{this.toMMSS(this.state.duration)}</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    )}
+                                    <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center', alignItems:'center'}}>
+                                        <TouchableOpacity onPress={() => this.minus15()}>
+                                            <View style={{flex: 0, alignItems: 'center'}}>
+                                                <View style={{transform: [{rotateY: '180deg'}]}}>
+                                                    <Ionicons name="ios-refresh" size={30} color="tomato" />
+                                                </View>
+                                                <Text style={{fontSize: 10}}>-15 {this.props.main.lang == 'ru' ? 'сек' : this.props.main.lang == 'es' ? 'seg' : 'sec'}.</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => this.togglePlaying()}>
+                                            <View style={{marginRight: 20, marginLeft: 20}}>
+                                                {this.state.playing ? <Ionicons name="ios-pause" size={35} color="tomato" /> : <Ionicons name="ios-play" size={35} color="tomato" />}
+                                            </View>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => this.plus15()}>
+                                            <View style={{flex: 0, alignItems: 'center'}}>
+                                                <Ionicons name="ios-refresh" size={30} color="tomato" />
+                                                <Text style={{fontSize: 10}}>+15 {this.props.main.lang == 'ru' ? 'сек' : this.props.main.lang == 'es' ? 'seg' : 'sec'}.</Text>
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
-                                ) : (
-                                    <View>
-                                        <Slider
-                                        style={{
-                                            marginTop: -10,
-                                            marginBottom: 5,
+                                </View>
+                            ) : (
+                                <View style={{
+                                    flex: 1,
+                                    backgroundColor: "#F5FCFF",
+                                }}>
+                                    <WebView
+                                        source={{
+                                            uri: `https://harekrishna.ru/mobile-api/archive-audio-player.php?code=${this.state.webViewCode}`
                                         }}
-                                        minimumValue={0}
-                                        maximumValue={this.state.duration}
-                                        onValueChange={val => this.changePlyingPos(val)}
-                                        value={this.state.currentTime}
-                                        />
-                                        <View style={{flex: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                                            <View>
-                                                <Text>{this.toMMSS(this.state.currentTime)}</Text>
-                                            </View>
-                                            <View>
-                                                <Text>{this.toMMSS(this.state.duration)}</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                )}
-                            <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center', alignItems:'center'}}>
-                                <TouchableOpacity onPress={() => this.minus15()}>
-                                    <View style={{flex: 0, alignItems: 'center'}}>
-                                        <View style={{transform: [{rotateY: '180deg'}]}}>
-                                            <Ionicons name="ios-refresh" size={30} color="tomato" />
-                                        </View>
-                                        <Text style={{fontSize: 10}}>-15 {this.props.main.lang == 'ru' ? 'сек' : this.props.main.lang == 'es' ? 'seg' : 'sec'}.</Text>
-                                    </View>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => this.togglePlaying()}>
-                                    <View style={{marginRight: 20, marginLeft: 20}}>
-                                        {this.state.playing ? <Ionicons name="ios-pause" size={35} color="tomato" /> : <Ionicons name="ios-play" size={35} color="tomato" />}
-                                    </View>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => this.plus15()}>
-                                    <View style={{flex: 0, alignItems: 'center'}}>
-                                        <Ionicons name="ios-refresh" size={30} color="tomato" />
-                                        <Text style={{fontSize: 10}}>+15 {this.props.main.lang == 'ru' ? 'сек' : this.props.main.lang == 'es' ? 'seg' : 'sec'}.</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
+                                        // style={{a}}
+                                    />
+                                </View>
+                            )}
                         </View>
                     )}
                 {/* </Modal> */}
