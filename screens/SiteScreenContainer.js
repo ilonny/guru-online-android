@@ -12,7 +12,8 @@ import {
     Animated,
     Modal,
     Picker,
-    ActivityIndicator
+    ActivityIndicator,
+    Switch
 } from "react-native";
 import AsyncStorage from '@react-native-community/async-storage';
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
@@ -24,7 +25,7 @@ import SiteScreenEs from "./SiteScreenEs";
 
 import { setLang, setLangInside } from "../actions/lang";
 import { connect } from "react-redux";
-
+import { listStyles } from "../constants/list_styles";
 const ContentRoute = (sceneProps) => <SiteScreenList type="content" sceneProps={sceneProps} />;
 const LookRoute = (sceneProps) => <SiteScreenList type="look" sceneProps={sceneProps} />;
 const ListenRoute = (sceneProps) => <SiteScreenList type="listen" sceneProps={sceneProps} />;
@@ -32,7 +33,6 @@ const ReadRoute = (sceneProps) => <SiteScreenList type="read" sceneProps={sceneP
 const ImportantRoute = (sceneProps) => <SiteScreenList type="important" sceneProps={sceneProps}/>;
 const CalendarRoute = (sceneProps) => <CalendarScreen sceneProps={sceneProps} />;
 const ScsRoute = (sceneProps) => <ScsmathScreen sceneProps={sceneProps} />;
-import NavigationService from "../NavigationService";
 import {ecadashCityList} from '../constants/ecadash'
 import {API_URL} from '../constants/api'
 class SiteScreenContainer extends Component {
@@ -57,6 +57,8 @@ class SiteScreenContainer extends Component {
         ecadashCityList: ecadashCityList,
         ecadashCityChosen: 'moscow',
         needRedirectCalendar: this.props.navigation.getParam('c_date', '') ? true : false,
+        ecadashCategory: [],
+        token: '',
     };
     _handleIndexChange = index => this.setState({ index });
 
@@ -156,7 +158,7 @@ class SiteScreenContainer extends Component {
             })
         })
         AsyncStorage.getItem("lang", (err, value) => {
-            console.log("lang is ", value);
+            // console.log("lang is ", value);
             if (!value || value == "ru") {
                 this.props.setLangInside("ru");
             }
@@ -167,26 +169,84 @@ class SiteScreenContainer extends Component {
                 this.props.setLangInside("es");
             }
             console.log("CDM LANG?", value)
-            if (value == 'ru' || !value) {
-                this.setState({
-                    routes: [
-                        { key: "content", title: "Новости", lang: 'ru' },
-                        { key: "look", title: "Смотреть", lang: 'ru' },
-                        { key: "listen", title: "Слушать", lang: 'ru' },
-                        { key: "read", title: "Читать", lang: 'ru' },
-                        { key: "important", title: "Это важно", lang: 'ru' },
-                        { key: "calendar", title: "Вайшнавский календарь", lang: 'ru', needRedirectCalendar: this.state.needRedirectCalendar },
-                    ]
-                })
-            } else {
-                this.setState({
-                    routes: [
-                        { key: "scs", title: "scsmath.com", lang: 'en' },
-                        { key: "calendar", title: "Vaishnava calendar", lang: 'en', needRedirectCalendar: this.state.needRedirectCalendar },
-                    ]
-                })
-            }
+                if (value == 'ru' || value == null || value == undefined) {
+                    this.setState({
+                        routes: [
+                            { key: "content", title: "Новости", lang: 'ru' },
+                            { key: "look", title: "Смотреть", lang: 'ru' },
+                            { key: "listen", title: "Слушать", lang: 'ru' },
+                            { key: "read", title: "Читать", lang: 'ru' },
+                            { key: "important", title: "Это важно", lang: 'ru' },
+                            { key: "calendar", title: "Вайшнавский календарь", lang: 'ru', needRedirectCalendar: this.state.needRedirectCalendar },
+                        ]
+                    })
+                } else {
+                    this.setState({
+                        routes: [
+                            { key: "scs", title: "scsmath.com", lang: 'en' },
+                            { key: "calendar", title: "Vaishnava calendar", lang: 'en', needRedirectCalendar: this.state.needRedirectCalendar },
+                        ]
+                    })
+                }
         });
+        AsyncStorage.getItem('ecadash_category', (err, value) => {
+            if (!value) {
+                value = '["holy", "ecadash"]';
+            }
+            try {
+                this.setState({
+                    ecadashCategory: JSON.parse(value),
+                })
+            } catch (e) {
+                console.log('crash', e)
+            }
+        })
+    }
+    switchToggle(name){
+        if (this.state.ecadashCategory.includes(name)) {
+            let arr = [...this.state.ecadashCategory];
+            let index = arr.indexOf(name);
+            arr.splice(index, 1);
+            this.setState({
+                ecadashCategory: arr
+            });
+        } else {
+            this.setState({
+                ecadashCategory: this.state.ecadashCategory.concat(name)
+            });
+        }
+        console.log('swittch', name)
+        setTimeout(() => {
+            this.updateTokenSetting();
+            AsyncStorage.setItem('ecadash_category', JSON.stringify(this.state.ecadashCategory));
+        }, 150);
+    }
+    updateTokenSetting() {
+        console.log('start get token');
+        AsyncStorage.getItem('Token', (err, token) =>{
+            console.log('end get token', token)
+            if (token) {
+                let request = new XMLHttpRequest();
+                request.onreadystatechange = e => {
+                    if (request.readyState !== 4) {
+                        return;
+                    }
+                    if (request.status === 200) {
+                    }
+                };
+                request.open(
+                    "GET",
+                    API_URL +
+                        `/set-token?token=${token}&settings=old&news_settings=old&version=3&ecadash=old&ecadash=${JSON.stringify(this.state.ecadashCategory)}`
+                );
+                request.send();
+                console.log(
+                    "updateTokenCity",
+                    API_URL +
+                        `/set-token?token=${token}&settings=old&news_settings=old&version=3&ecadash=old&ecadash=${JSON.stringify(this.state.ecadashCategory)}`
+                );
+            }
+        })
     }
     render() {
         console.log("root render state", this.state);
@@ -218,7 +278,7 @@ class SiteScreenContainer extends Component {
                     </SafeAreaView>
                 );
             }
-        } else {
+        } else
             return (
                 <Modal
                     animationType="slide"
@@ -433,8 +493,7 @@ class SiteScreenContainer extends Component {
                             )}
                             <TouchableOpacity
                                 onPress={() => {
-                                    this.props.main.lang == 'es' ?
-                                    setLang(this.state.langChosen)
+                                    this.state.langChosen == 'es' ? this.setState({modalShowed: true}, () => setLang(this.state.langChosen))
                                     : this.setState({modalStep: 3})
                                 }}
                                 style={{
@@ -476,27 +535,37 @@ class SiteScreenContainer extends Component {
                             }}>
                                 {this.state.langChosen == 'ru' ? 'Пожалуйста, выберите свой город для получения уведомлений об экадаши и праздниках:' : 'Please select your city to receive notifications about Ekadashi and holidays:'}
                             </Text>
-                            <Picker
-                                selectedValue={this.state.ecadashCityChosen}
-                                style={{height: 250, width: 250}}
-                                onValueChange={itemValue => {
-                                    this.setState({ecadashCityChosen: itemValue});
-                                    AsyncStorage.setItem('ecadash_city_chosen', itemValue);
-                                }}
-                            >
-                                {this.state.ecadashCityList.map(city => (
-                                    <Picker.Item key={city.name_link} label={this.state.langChosen == 'ru' ? city.name : city.name_eng} value={city.name_link} />
-                                ))}
-                            </Picker>
+                                <Picker
+                                    selectedValue={this.state.ecadashCityChosen}
+                                    style={{height: 250, width: 250}}
+                                    onValueChange={itemValue => {
+                                        this.setState({ecadashCityChosen: itemValue});
+                                        AsyncStorage.setItem('ecadash_city_chosen', itemValue);
+                                    }}
+                                    >
+                                    {this.state.ecadashCityList.map(city => (
+                                        <Picker.Item key={city.name_link} label={this.state.langChosen == 'ru' ? city.name : city.name_eng} value={city.name_link} />
+                                        ))}
+                                </Picker>
+                                <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', maxHeight: 20, width: 200}}>
+                                    <View style={{maxWidth: '80%'}}>
+                                        <Text style={{fontWeight: 'bold'}}>Праздники</Text>
+                                    </View>
+                                    <Switch value={this.state.ecadashCategory.includes('holy') ? true : false}  onValueChange={() => this.switchToggle('holy')} />
+                                </View>
+                                <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', maxHeight: 20, width: 200, marginTop: 20, marginBottom: 20}}>
+                                    <View style={{maxWidth: '80%'}}>
+                                        <Text style={{fontWeight: 'bold'}}>Экадаши</Text>
+                                    </View>
+                                    <Switch value={this.state.ecadashCategory.includes('ecadash') ? true : false}  onValueChange={() => this.switchToggle('ecadash')} />
+                                </View>
                             <TouchableOpacity
                                 onPress={() => {
-                                    this.setState({
-                                        modalShowed: true,
-                                    });
-                                    if (this.state.langChosen != 'ru') {
-                                        setLang(this.state.langChosen)}
+                                        this.setState({
+                                            modalShowed: true
+                                        }, () => {this.state.langChosen != 'ru' && setLang(this.state.langChosen)})
                                     }
-                                        // AsyncStorage.getItem('ecadash_city_chosen', (err, value) => {
+                                    // AsyncStorage.getItem('ecadash_city_chosen', (err, value) => {
                                     //     console.log('ecadash_city_chosen', value)
                                     // })
                                 }
@@ -523,7 +592,6 @@ class SiteScreenContainer extends Component {
                     )}
                 </Modal>
             );
-        }
     }
 }
 // const styles = StyleSheet.create({
@@ -563,7 +631,7 @@ const styles = StyleSheet.create({
         flex: 1
     },
     tabbar: {
-        paddingTop: 0,
+        paddingTop: 13,
         backgroundColor: "#f7f7f7"
     },
     tab: {
