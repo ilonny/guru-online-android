@@ -35,6 +35,7 @@ class SettingsMainScreenContainer extends Component {
             { key: "settings", title: "Daily quotes"},
             { key: "settingsLang", title: "Language"},
         ] : this.props.main.lang == 'es' ? [
+            { key: "settingsCity", title: "Ciudad"},
             { key: "settings", title: "Cotizaciones diarias"},
             { key: "settingsLang", title: "Idioma"},
         ] : [

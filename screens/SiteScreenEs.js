@@ -16,7 +16,8 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 import WKWebView from "react-native-wkwebview-reborn";
-
+import CalendarScreen from "./CalendarScreen";
+const CalendarRoute = (sceneProps) => <CalendarScreen sceneProps={sceneProps} />;
 const SiteEs1 = () => {
     return (
         <SafeAreaView
@@ -94,10 +95,12 @@ const SiteEs2 = () => {
 
 class SiteScreenEs extends Component {
     state = {
+        needRedirectCalendar: this.props.navigation.getParam('c_date', '') ? true : false,
         index: 0,
         routes: [
             { key: "site1", title: "sadhusangamexico.wordpress.com" },
-            { key: "site2", title: "paramakaruna.org.ve" }
+            { key: "calendar", title: "Vaishnava calendar", lang: 'en', needRedirectCalendar: this.props.navigation.getParam('c_date', '') ? true : false },
+            { key: "site2", title: "paramakaruna.org.ve" },
         ]
     };
     _handleIndexChange = index => this.setState({ index });
@@ -122,7 +125,8 @@ class SiteScreenEs extends Component {
     };
     _renderScene = SceneMap({
         site1: SiteEs1,
-        site2: SiteEs2
+        site2: SiteEs2,
+        calendar: CalendarRoute,
     });
     render() {
         return (

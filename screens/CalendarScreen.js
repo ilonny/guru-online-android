@@ -156,7 +156,7 @@ class CalendarScreen extends Component {
                 if (!lang) {
                     lang = "ru";
                 }
-                if (lang == "eng") {
+                if (lang == "eng" || lang == "es") {
                     lang = "en";
                 }
                 this.getCalendarData(city, lang);
