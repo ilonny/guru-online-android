@@ -170,6 +170,10 @@ class ListScreenContainer extends Component {
                 }
             }
             this.setPagination();
+            if (this.props.main.filteredBy) {
+                console.log('CDM NEED FILTER BY', this.props.main.filteredBy)
+                this.filterQuotes(this.props.main.filteredBy)
+            }
         };
         request.open('GET', API_URL + `/quotes?items=[${this.state.items}]&lang=${this.props.main.lang}`);
         request.send();
@@ -238,6 +242,10 @@ class ListScreenContainer extends Component {
             this.initialStart();
         }, 1000);
         this.props.navigation.setParams({toggleSettings: this.toggleSettings})
+        if (this.props.main.filteredBy) {
+            console.log('CDM NEED FILTER BY', this.props.main.filteredBy)
+            this.filterQuotes(this.props.main.filteredBy)
+        }
         // AsyncStorage.clear();
     }
     shouldComponentUpdate(nextProps, nextState) {
@@ -451,6 +459,7 @@ class ListScreenContainer extends Component {
             modalIsOpen: false
           })
         }
+        this.props.setFilteredBy(author_name);
       }
     render() {
         let comp;
@@ -465,6 +474,7 @@ class ListScreenContainer extends Component {
         //     }
         // }
         console.log('quotes state', this.state);
+        console.log('quotes props', this.props);
         if (this.state.storage != "[]") {
             if (this.state.quotes) {
             comp = (
@@ -553,6 +563,10 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         // setLangInside: lang => dispatch(setLangInside(lang))
+        setFilteredBy: author_name => dispatch({
+            type: "SET_FILTERED_BY",
+            author_name
+        })
     };
 };
 
