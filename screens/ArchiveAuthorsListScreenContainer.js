@@ -302,7 +302,7 @@ class ArchiveAuthorsListScreenContainer extends Component {
                                                     <Text
                                                         style={{
                                                             marginTop: 10,
-                                                            color: "#c5c5c5",
+                                                            color: "#969595",
                                                             fontStyle: "italic"
                                                         }}
                                                     >
