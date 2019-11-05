@@ -126,7 +126,7 @@ class ListScreenContainer extends Component {
                     }
                 }, 1000);
             } else {
-                console.log("error req");
+                console.log("error req", request);
                 this.setState(state => {
                     return {
                         ...state,
