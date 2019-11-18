@@ -19,6 +19,7 @@ import AudioScreenRouter from "./screens/AudioScreenRouter"
 import ArchiveAuthorsListScreen from "./screens/ArchiveAuthorsListScreen"
 import AudioArchiveYearsScreen from "./screens/AudioArchiveYearsScreen"
 import AudioArchiveAudioScreen from "./screens/AudioArchiveAudioScreen"
+import NotificationScreen from "./screens/NotificationScreen"
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { API_URL } from "./constants/api";
 import NavigationService from "./NavigationService";
@@ -112,7 +113,8 @@ const AudioStack = createStackNavigator({
 // })
 const SiteStack = createStackNavigator({
     SiteTabScreen: SiteScreen,
-    SiteDetail: SiteScreenDetail
+    SiteDetail: SiteScreenDetail,
+    NotificationScreen: NotificationScreen
 });
 let TopLevelNavigator = createBottomTabNavigator(
     {

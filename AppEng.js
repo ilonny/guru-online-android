@@ -27,6 +27,7 @@ import AudioDetail from "./screens/AudioDetail";
 import SiteScreen from "./screens/SiteScreen";
 import SiteScreenDetail from "./screens/SiteScreenDetail";
 import SettingsMainScreen from "./screens/SettingsMainScreen";
+import NotificationScreen from "./screens/NotificationScreen"
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { API_URL } from "./constants/api";
 import NavigationService from "./NavigationService";
@@ -107,7 +108,8 @@ const AudioStack = createStackNavigator({
 });
 const SiteStack = createStackNavigator({
     SiteTabScreen: SiteScreen,
-    SiteDetail: SiteScreenDetail
+    SiteDetail: SiteScreenDetail,
+    NotificationScreen: NotificationScreen
 });
 let TopLevelNavigator = createBottomTabNavigator(
     {
