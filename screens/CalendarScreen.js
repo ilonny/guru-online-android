@@ -94,16 +94,16 @@ class CalendarScreen extends Component {
                     console.log("todayIndex", todayIndex);
                     try {
                         if (todayIndex) {
-                            console.log('scrollToindex fired')
+                            console.log('scrollToindex fired', todayIndex)
                             this.refs.scrollToIndex({
                                 animated: true,
-                                index: todayIndex
+                                index: todayIndex+3
                             });
                             this.setState({scrolled: true})
                         }    
                     } catch (error) {}
                 }
-            }, 250);
+            }, 2500);
         };
 
         request.open(
